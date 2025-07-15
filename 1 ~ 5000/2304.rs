@@ -1,6 +1,5 @@
 use io::Write;
-use std::fs::hard_link;
-use std::{cmp::Ordering, collections::BinaryHeap, io, str};
+use std::{io, str};
 
 pub struct UnsafeScanner<R> {
     reader: R,
