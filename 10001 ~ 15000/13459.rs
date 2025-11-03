@@ -150,7 +150,7 @@ fn bfs(rx: i64, ry: i64, bx: i64, by: i64, board: &mut Vec<Vec<char>>) -> i64 {
 
             if !rgoal && !bgoal {
                 if rnx == bnx && rny == bny {
-                    (rnx, rny, bnx, bny) = reroad(rx, ry, bx, by, rnx, rny, i);
+                    (rnx, rny, bnx, bny) = reload(rx, ry, bx, by, rnx, rny, i);
                 }
                 if !visited[rnx as usize][rny as usize][bnx as usize][bny as usize] {
                     visited[rnx as usize][rny as usize][bnx as usize][bny as usize] = true;
@@ -162,7 +162,7 @@ fn bfs(rx: i64, ry: i64, bx: i64, by: i64, board: &mut Vec<Vec<char>>) -> i64 {
     0
 }
 
-fn reroad(rx: i64, ry: i64, bx: i64, by: i64, nx: i64, ny: i64, i: usize) -> (i64, i64, i64, i64) {
+fn reload(rx: i64, ry: i64, bx: i64, by: i64, nx: i64, ny: i64, i: usize) -> (i64, i64, i64, i64) {
     let (mut rbx, mut rby, mut bbx, mut bby) = (0, 0, 0, 0);
     if i == 0 {
         rbx = nx;
