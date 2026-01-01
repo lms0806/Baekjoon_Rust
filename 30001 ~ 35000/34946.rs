@@ -38,4 +38,22 @@ fn main() {
     let mut scan = UnsafeScanner::new(stdin.lock());
     let mut out = io::BufWriter::new(stdout.lock());
 
+    let (a, b, c, d) = (
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+    );
+
+    write!(
+        out,
+        "{}",
+        match (a + b <= d, c <= d) {
+            (true, true) => "~.~",
+            (false, false) => "T.T",
+            (true, false) => "Shuttle",
+            (false, true) => "Walk",
+        }
+    )
+    .unwrap();
 }

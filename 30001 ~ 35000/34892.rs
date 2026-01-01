@@ -38,4 +38,44 @@ fn main() {
     let mut scan = UnsafeScanner::new(stdin.lock());
     let mut out = io::BufWriter::new(stdout.lock());
 
+    let n = scan.token::<i64>();
+    let (a, b, c, d) = (
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+    );
+    let (e, f, g, h) = (
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+        scan.token::<i64>(),
+    );
+
+    let mut count = 0;
+    let mut answer = (0, 0, 0);
+
+    for x in 0..=n {
+        for y in 0..=(n - x) {
+            let z = n - x - y;
+
+            if a * x + b * y + c * z == d && e * x + f * y + g * z == h {
+                count += 1;
+
+                if count == 1 {
+                    answer = (x, y, z);
+                } else {
+                    write!(out, "1").unwrap();
+                    return;
+                }
+            }
+        }
+    }
+
+    if count == 0 {
+        write!(out, "2").unwrap();
+    } else {
+        writeln!(out, "0").unwrap();
+        write!(out, "{} {} {}", answer.0, answer.1, answer.2).unwrap();
+    }
 }
