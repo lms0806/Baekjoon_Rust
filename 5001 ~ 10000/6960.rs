@@ -1,0 +1,117 @@
+use std::collections::{BTreeMap, HashMap};
+use std::io::Write;
+use std::{io, str};
+
+pub struct UnsafeScanner<R> {
+    reader: R,
+    buf_str: Vec<u8>,
+    buf_iter: str::SplitAsciiWhitespace<'static>,
+}
+
+impl<R: io::BufRead> UnsafeScanner<R> {
+    pub fn new(reader: R) -> Self {
+        Self {
+            reader,
+            buf_str: Vec::with_capacity(1 << 16),
+            buf_iter: "".split_ascii_whitespace(),
+        }
+    }
+
+    #[inline(always)]
+    pub fn token<T: str::FromStr>(&mut self) -> T {
+        loop {
+            if let Some(token) = self.buf_iter.next() {
+                return token.parse().ok().expect("Failed parse");
+            }
+            self.buf_str.clear();
+            self.reader
+                .read_until(b'\n', &mut self.buf_str)
+                .expect("Failed read");
+            self.buf_iter = unsafe {
+                let slice = str::from_utf8_unchecked(&self.buf_str);
+                std::mem::transmute(slice.split_ascii_whitespace())
+            };
+        }
+    }
+
+    pub fn token_eof<T: str::FromStr>(&mut self) -> Option<T> {
+        loop {
+            if let Some(token) = self.buf_iter.next() {
+                return Some(token.parse().ok()?);
+            }
+            self.buf_str.clear();
+            let n = self.reader.read_until(b'\n', &mut self.buf_str).ok()?;
+            if n == 0 {
+                return None;
+            }
+            self.buf_iter = unsafe {
+                let slice = str::from_utf8_unchecked(&self.buf_str);
+                std::mem::transmute(slice.split_ascii_whitespace())
+            };
+        }
+    }
+
+    pub fn line(&mut self) -> String {
+        self.buf_iter = "".split_ascii_whitespace();
+        self.buf_str.clear();
+        self.reader.read_until(b'\n', &mut self.buf_str).unwrap();
+        let s = str::from_utf8(&self.buf_str).unwrap();
+        s.trim_end().to_string()
+    }
+}
+
+fn main() {
+    let (stdin, stdout) = (io::stdin(), io::stdout());
+    let reader = io::BufReader::with_capacity(1 << 20, stdin.lock());
+    let mut scan = UnsafeScanner::new(reader);
+    let mut out = io::BufWriter::new(stdout.lock());
+
+    for _ in 0..scan.token::<usize>() {
+        let (n, k) = (scan.token::<usize>(), scan.token::<usize>());
+        let mut count_map = HashMap::new();
+
+        for _ in 0..n {
+            *count_map.entry(scan.token::<String>()).or_insert(0) += 1;
+        }
+
+        let mut freq_map = BTreeMap::new();
+        for (word, count) in &count_map {
+            freq_map.entry(*count).or_insert_with(Vec::new).push(word);
+        }
+
+        writeln!(
+            out,
+            "{}{} most common word(s):",
+            k,
+            if (11..=13).contains(&(k % 100)) {
+                "th"
+            } else {
+                match k % 10 {
+                    1 => "st",
+                    2 => "nd",
+                    3 => "rd",
+                    _ => "th",
+                }
+            }
+        )
+        .unwrap();
+
+        let mut rank = 1;
+        for (_, words) in freq_map.iter().rev() {
+            if rank == k {
+                for word in words {
+                    writeln!(out, "{}", word).unwrap();
+                }
+                break;
+            }
+
+            rank += words.len();
+
+            if rank > k {
+                break;
+            }
+        }
+
+        writeln!(out).unwrap();
+    }
+}
